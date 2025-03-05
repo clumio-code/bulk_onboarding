@@ -1,0 +1,32 @@
+{
+  "bear": "<clumio api bearer token>",
+  "organization_role_arn": "arn:aws:iam::<ou-account-id>:role/<ou-role>",
+  "assume_policy_arn": "arn:aws:iam::<ou-account-id>:policy/<assume policy in ou-role>",
+  "api_url": "<clumio api url>",
+  "stack_name": "<stack name to create>",
+  "debug": 99,
+  "accounts": [
+    {
+      "aws_account_id": "<aws account id 1>",
+      "aws_region_list": [
+        "us-east-1",
+        "us-west-2"
+      ],
+      "aws_service_list": [
+        "EBS",
+        "S3",
+        "RDS",
+        "DynamoDB"
+      ]
+    },
+    {
+      "aws_account_id": "<aws account id 2>",
+      "aws_region_list": [
+        "us-east-2"
+      ],
+      "aws_service_list": [
+        "S3"
+      ]
+    }
+  ]
+}

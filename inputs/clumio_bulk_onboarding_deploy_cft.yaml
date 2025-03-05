@@ -1,0 +1,125 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Lambda function deploy for bulk onboard
+Parameters:
+  Bucket:
+    Type: String
+    MinLength: 3
+    MaxLength: 63
+    Description: The bucket name where the zip file is placed.
+  LambdaRoleArn:
+    Type: String
+    MinLength: 20
+    MaxLength: 2048
+    Description: Role to run lambda function.
+Resources:
+  LambdaFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: clumio-bulk-onboard-aws-accounts
+      Runtime: python3.12
+      Timeout: 60
+      Role: !Ref LambdaRoleArn
+      Handler: clumio_connect_aws_account.lambda_handler
+      Code:
+        S3Bucket: !Ref Bucket
+        S3Key: clumio_connect_code.zip
+      Description: Connect AWS account to Clumio.
+      TracingConfig:
+        Mode: Active
+  StateMachineRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: 
+                - states.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: LambdaInvokeScopedAccessPolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - lambda:InvokeFunction
+                Resource:
+                  - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:clumio-bulk-onboard-aws-accounts:*
+                  - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:clumio-bulk-onboard-aws-accounts
+        - PolicyName: XRayAccessPolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - xray:PutTraceSegments
+                  - xray:PutTelemetryRecords
+                  - xray:GetSamplingRules
+                  - xray:GetSamplingTargets
+                Resource: "*"
+  BulkRestoreStepFunction:
+    Type: "AWS::StepFunctions::StateMachine"
+    Properties:
+      StateMachineName: clumio-bulk-restore-state-machine
+      RoleArn: !GetAtt StateMachineRole.Arn
+      DefinitionString:
+        Fn::Sub: |
+            {
+              "Comment": "A description of my state machine",
+              "StartAt": "Parse Input Data",
+              "States": {
+                "Parse Input Data": {
+                  "Type": "Map",
+                  "ItemProcessor": {
+                    "ProcessorConfig": {
+                      "Mode": "INLINE"
+                    },
+                    "StartAt": "Set lambda input",
+                    "States": {
+                      "Set lambda input": {
+                        "Type": "Pass",
+                        "Next": "clumio account onboard lambda",
+                        "Parameters": {
+                          "startTime.$": "$$.Execution.StartTime",
+                          "execName.$": "$$.Execution.Name",
+                          "bear.$": "$$.Execution.Input.bear",
+                          "debug.$": "$$.Execution.Input.debug",
+                          "api_url.$": "$$.Execution.Input.api_url",
+                          "stack_name.$": "$$.Execution.Input.stack_name",
+                          "organization_role_arn.$": "$$.Execution.Input.organization_role_arn",
+                          "assume_policy_arn.$": "$$.Execution.Input.assume_policy_arn",
+                          "account.$": "$"
+                        }
+                      },
+                      "clumio account onboard lambda": {
+                        "Type": "Task",
+                        "Resource": "arn:aws:states:::lambda:invoke",
+                        "OutputPath": "$.Payload",
+                        "Parameters": {
+                          "Payload.$": "$",
+                          "FunctionName": "arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:clumio-bulk-onboard-aws-accounts:$LATEST"
+                        },
+                        "Retry": [
+                          {
+                            "ErrorEquals": [
+                              "Lambda.ServiceException",
+                              "Lambda.AWSLambdaException",
+                              "Lambda.SdkClientException",
+                              "Lambda.TooManyRequestsException"
+                            ],
+                            "IntervalSeconds": 1,
+                            "MaxAttempts": 3,
+                            "BackoffRate": 2
+                          }
+                        ],
+                        "End": true
+                      }
+                    }
+                  },
+                  "End": true,
+                  "ItemsPath": "$.accounts"
+                }
+              }
+            }
