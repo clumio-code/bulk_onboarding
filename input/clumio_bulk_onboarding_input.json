@@ -1,10 +1,8 @@
 {
   "bear": "<clumio api bearer token>",
   "organization_role_arn": "arn:aws:iam::<ou-account-id>:role/<ou-role>",
-  "assume_policy_arn": "arn:aws:iam::<ou-account-id>:policy/<assume policy in ou-role>",
   "api_url": "<clumio api url>",
   "stack_name": "<stack name to create>",
-  "debug": 99,
   "accounts": [
     {
       "aws_account_id": "<aws account id 1>",

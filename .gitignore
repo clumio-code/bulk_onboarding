@@ -1,0 +1,46 @@
+.DS_Store
+.idea
+.vs
+build
+
+# We do *NOT* want binaries in our git repositories.
+# If they need to be included this has to be done through
+# binary blob stores such as S3 buckets.
+*.a
+*.apk
+*.avi
+*.deb
+*.dll
+*.dmg
+*.exe
+*.jar
+*.log
+*.log.*
+*.mp3
+*.mp4
+*.msi
+*.pkg
+*.o
+*.rpm
+*.sig
+*.so
+*.so.2
+*.tar
+*.tar.*
+*.tgz
+*.war
+*.zip
+
+
+# Python files
+.coverage
+.coverage.*
+.coverage-*
+.mypy_cache
+.python-version
+__pycache__
+dist
+*.whl
+*.pyc
+*.egg-info
+*.wheel

@@ -22,7 +22,7 @@ Resources:
       Handler: clumio_connect_aws_account.lambda_handler
       Code:
         S3Bucket: !Ref Bucket
-        S3Key: clumio_connect_code.zip
+        S3Key: clumio_bulk_onboarding.zip
       Description: Connect AWS account to Clumio.
       TracingConfig:
         Mode: Active
@@ -85,11 +85,9 @@ Resources:
                           "startTime.$": "$$.Execution.StartTime",
                           "execName.$": "$$.Execution.Name",
                           "bear.$": "$$.Execution.Input.bear",
-                          "debug.$": "$$.Execution.Input.debug",
                           "api_url.$": "$$.Execution.Input.api_url",
                           "stack_name.$": "$$.Execution.Input.stack_name",
                           "organization_role_arn.$": "$$.Execution.Input.organization_role_arn",
-                          "assume_policy_arn.$": "$$.Execution.Input.assume_policy_arn",
                           "account.$": "$"
                         }
                       },

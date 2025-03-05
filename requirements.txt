@@ -1,0 +1,6 @@
+# Installation requirements.
+# pip install -r requirements.txt
+boto3==1.37.1
+botocore==1.37.1
+requests==2.32.3
+boto3-stubs[sts]==1.37.1

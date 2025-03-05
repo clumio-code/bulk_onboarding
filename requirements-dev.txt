@@ -1,0 +1,15 @@
+#
+# Python development requirements, allows us to locally install with just
+#  `pip install -r requirements-dev.txt`
+#
+
+-r requirements.txt
+aws-lambda-powertools==3.2.0
+green>=4.0.2
+mypy>=1.13.0
+mypy-extensions>=1.0.0
+pre-commit>=4.0.1
+types-requests>=2.32.0
+ruff>=0.7.3
+setuptools>=75.4.0
+yamllint>=1.35.1
