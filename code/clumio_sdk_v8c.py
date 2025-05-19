@@ -150,26 +150,27 @@ class AWSOrgAccount:
         self,
         account_id: str,
         region: str,
-        cft_admin_role: str = 'AWSCloudFormationStackSetAdministrationRole',
+        cft_role: str = 'AWSCloudFormationStackSetExecutionRole',
     ):
         self._account_id = account_id
         self._aws_region = region
         self._rnd_string = ''.join(random.choices(string.ascii_letters, k=5))
+        self.cft_role = cft_role
 
         # Get the current session information
-        sts_client = boto3.client('sts')
-        self.account_id = sts_client.get_caller_identity()['Account']
+        self.sts_client = boto3.client('sts')
 
-        # Assume the role in the target account
-        credentials = sts_client.assume_role(
-            RoleArn=f'arn:aws:iam::{self.account_id}:role/{cft_admin_role}',
+    def get_session_assume_role(self, account_id: str):
+        # Assume the role of account to deploy.
+        credentials = self.sts_client.assume_role(
+            RoleArn=f'arn:aws:iam::{account_id}:role/{self.cft_role}',
             RoleSessionName='ClumioBulkOnboardSession',
         )['Credentials']
         access_key = credentials['AccessKeyId']
         secret_key = credentials['SecretAccessKey']
         session_token = credentials['SessionToken']
 
-        self.session = boto3.Session(
+        return boto3.Session(
             aws_access_key_id=access_key,
             aws_secret_access_key=secret_key,
             aws_session_token=session_token,
@@ -185,7 +186,7 @@ class AWSOrgAccount:
         stack_name: str,
     ):
         print(f'Deploying stack {stack_name} to {child_account_id}')
-        cft_client = self.session.client('cloudformation')
+        cft_client = self.get_session_assume_role(child_account_id).client('cloudformation')
         try:
             deploy_rsp = cft_client.create_stack(
                 StackName=f'{stack_name}-{self._rnd_string}',

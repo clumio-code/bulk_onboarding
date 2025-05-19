@@ -24,7 +24,7 @@ def lambda_handler(events, context):
     api_url = events.get('api_url')
     stack_name = events.get('stack_name', None)
     account = events.get('account', None)
-    cft_admin_role = events.get('cft_admin_role', 'AWSCloudFormationStackSetAdministrationRole')
+    cft_role = events.get('cft_role_name', 'AWSCloudFormationStackSetExecutionRole')
     if account:
         account_id_list = account.get('aws_account_id_list', None)
         region_list = account.get('aws_region_list', None)
@@ -41,7 +41,7 @@ def lambda_handler(events, context):
 
     for account_id in account_id_list:
         aws_account_mng = clumio_sdk_v8c.AWSOrgAccount(
-            account_id, deploy_region, cft_admin_role
+            account_id, deploy_region, cft_role
         )
 
         # Initiate Clumio API for onboarding an AWS account
