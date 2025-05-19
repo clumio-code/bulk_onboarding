@@ -19,11 +19,12 @@ import logging
 logger = logging.getLogger(__name__)
 
 def lambda_handler(events, context):
+    # Parse the input event
     bear = events.get("bear")
-    organization_role_arn = events.get("organization_role_arn")
     api_url = events.get("api_url")
     stack_name = events.get("stack_name", None)
     account = events.get("account", None)
+    cft_admin_role = events.get("cft_admin_role", 'AWSCloudFormationStackSetAdministrationRole')
     if account:
         account_id_list = account.get("aws_account_id_list", None)
         region_list = account.get("aws_region_list", None)
@@ -40,28 +41,26 @@ def lambda_handler(events, context):
 
     for account_id in account_id_list:
         aws_account_mng = clumio_sdk_v8c.AWSOrgAccount(
-            api_url, account_id, deploy_region, organization_role_arn
+            account_id, deploy_region, cft_admin_role
         )
-        admin_creds = aws_account_mng.connect_assume_role()
-        admin_session = aws_account_mng.get_session(admin_creds)
 
         # Initiate Clumio API for onboarding an AWS account
         clumio_connect_api = clumio_sdk_v8c.ClumioConnectAccount(
             api_url, bear, account_id, region_list, aws_service_list
         )
-        rsp = clumio_connect_api.create_connection_group()
+
         # Parse the Clumio token, URL, and id to run the Clumio deployment stack
+        rsp = clumio_connect_api.create_connection_group()
         deployment_template_url_clumio = rsp.get("deployment_template_url")
         clumio_token = rsp.get("id")
         external_id = rsp.get("external_id")
+
         # Deploy CFT stack to connect AWS account to Clumio
         aws_account_mng.run_clumio_deploy_stack(
-            admin_session,
             account_id,
-            deploy_region,
             deployment_template_url_clumio,
-            clumio_token,
             external_id,
+            clumio_token,
             stack_name,
         )
 

@@ -1,6 +1,6 @@
 {
   "bear": "<clumio api bearer token>",
-  "organization_role_arn": "arn:aws:iam::<ou-account-id>:role/<ou-role>",
+  "cft_admin_role": "AWSCloudFormationStackSetAdministrationRole",
   "api_url": "<clumio api url>",
   "stack_name": "<stack name to create>",
   "accounts": [

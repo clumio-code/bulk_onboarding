@@ -149,76 +149,44 @@ class AWSOrgAccount:
 
     def __init__(
         self,
-        url: str,
         account_id: str,
         region: str,
-        ou_role_arn: str,
+        cft_admin_role: str = 'AWSCloudFormationStackSetAdministrationRole',
     ):
         self._account_id = account_id
         self._aws_region = region
         self._rnd_string = "".join(random.choices(string.ascii_letters, k=5))
-        self._ou_role_arn = ou_role_arn
-        self._ou_role_child_name = "OrganizationAccountAccessRole"
 
-    def get_session(self, creds: sts_types.CredentialsTypeDef) -> boto3.Session:
-        return boto3.Session(
-            aws_access_key_id=creds["AccessKeyId"],
-            aws_secret_access_key=creds["SecretAccessKey"],
-            aws_session_token=creds["SessionToken"],
+        # Get the current session information
+        sts_client = boto3.client('sts')
+        self.account_id = sts_client.get_caller_identity()['Account']
+
+        # Assume the role in the target account
+        credentials = sts_client.assume_role(
+            RoleArn=f'arn:aws:iam::{self.account_id}:role/{cft_admin_role}',
+            RoleSessionName='ClumioBulkOnboardSession',
+        )['Credentials']
+        access_key = credentials['AccessKeyId']
+        secret_key = credentials['SecretAccessKey']
+        session_token = credentials['SessionToken']
+
+        self.session = boto3.Session(
+            aws_access_key_id=access_key,
+            aws_secret_access_key=secret_key,
+            aws_session_token=session_token,
             region_name=self._aws_region,
         )
 
-    def connect_assume_role(
-        self,
-        current_session: boto3.Session | None = None,
-        role: str | None = None,
-    ) -> sts_types.CredentialsTypeDef:
-        # Manages an AWS Assume role operation from the current session to the role specified
-        if current_session:
-            client = current_session.client('sts')
-        else:
-            client = boto3.client("sts", region_name=self._aws_region)
-
-        role = role or self._ou_role_arn
-        external_id = session_name = f"clumio-bulk-onboard-{self._rnd_string}"
-        # AWS Assume Role API
-        try:
-            response = client.assume_role(
-                RoleArn=role, RoleSessionName=session_name, ExternalId=external_id
-            )
-        except ClientError as err:
-            raise AWSException("Failed while assuming role.") from err
-        return response["Credentials"]
-
     def run_clumio_deploy_stack(
         self,
-        current_aws_session: boto3.Session,
         child_account_id: str,
-        region: str,
         template_url: str,
-        token: str,
         external_id: str,
+        clumio_token: str,
         stack_name: str,
     ):
         print(f"Deploying stack {stack_name} to {child_account_id}")
-        clumio_token = token
-        role = f"arn:aws:iam::{child_account_id}:role/{self._ou_role_child_name}"
-        account_creds = self.connect_assume_role(current_aws_session, role)
-        access_key_id = account_creds["AccessKeyId"]
-        secret_access_key = account_creds["SecretAccessKey"]
-        session_token = account_creds["SessionToken"]
-        try:
-            new_aws_session = boto3.Session(
-                aws_access_key_id=access_key_id,
-                aws_secret_access_key=secret_access_key,
-                aws_session_token=session_token,
-                region_name=region
-            )
-        except ClientError as e:
-            error = e.response['Error']['Code']
-            error_msg = f"failed to initiate session {error}"
-            return False, error_msg
-        cft_client = new_aws_session.client("cloudformation")
+        cft_client = self.session.client("cloudformation")
         try:
             deploy_rsp = cft_client.create_stack(
                 StackName=f"{stack_name}-{self._rnd_string}",
