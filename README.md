@@ -29,7 +29,7 @@ make build
 ### Role creation
 * Follow the reference https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/stacksets-prereqs-self-managed.html
 * Please make sure `AWSCloudFormationStackSetAdministrationRole` is created in a control tower account.
-* Please meke sure `AWSCloudFormationStackSetExecutionRole` is created in each account to deploy stack.
+* Please make sure `AWSCloudFormationStackSetExecutionRole` is created in each account to deploy stack.
 
 
 ### Deployment in a control tower account

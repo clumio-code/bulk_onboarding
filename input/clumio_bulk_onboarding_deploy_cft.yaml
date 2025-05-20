@@ -84,13 +84,13 @@ Resources:
                         "Type": "Pass",
                         "Next": "clumio account onboard lambda",
                         "Parameters": {
-                          "startTime.$": "$$.Execution.StartTime",
-                          "execName.$": "$$.Execution.Name",
-                          "bear.$": "$$.Execution.Input.bear",
-                          "api_url.$": "$$.Execution.Input.api_url",
-                          "stack_name.$": "$$.Execution.Input.stack_name",
-                          "account.$": "$",
-                          "cft_role_name.$": "$$.Execution.Input.cft_role_name"
+                          "startTime.$": "$.Execution.StartTime",
+                          "execName.$": "$.Execution.Name",
+                          "bear.$": "$.Execution.Input.bear",
+                          "api_url.$": "$.Execution.Input.api_url",
+                          "stack_name.$": "$.Execution.Input.stack_name",
+                          "connection_detail.$": "$",
+                          "cft_role_name.$": "$.Execution.Input.cft_role_name"
                         }
                       },
                       "clumio account onboard lambda": {

@@ -23,18 +23,18 @@ def lambda_handler(events, context):
     bear = events.get('bear')
     api_url = events.get('api_url')
     stack_name = events.get('stack_name', None)
-    account = events.get('account', None)
+    connection_detail = events.get('account', None)
     cft_role = events.get('cft_role_name', 'AWSCloudFormationStackSetExecutionRole')
-    if account:
-        account_id_list = account.get('aws_account_id_list', None)
-        region_list = account.get('aws_region_list', None)
-        aws_service_list = account.get('aws_service_list', None)
+    if connection_detail:
+        account_id_list = connection_detail.get('aws_account_id_list', None)
+        region_list = connection_detail.get('aws_region_list', None)
+        aws_service_list = connection_detail.get('aws_service_list', None)
     else:
         raise clumio_sdk_v8c.InvalidInputException('No account detail provided.')
     if not all((account_id_list, region_list, aws_service_list)):
         raise clumio_sdk_v8c.InvalidInputException(
             'Missing account detail. Make sure to provide account_id_list, region_list, '
-            f'and aws_service_list for account {account}.'
+            f'and aws_service_list for connection {connection_detail}.'
         )
 
     deploy_region = region_list[0]
