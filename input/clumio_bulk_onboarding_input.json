@@ -1,11 +1,13 @@
 {
   "bear": "<clumio api bearer token>",
-  "organization_role_arn": "arn:aws:iam::<ou-account-id>:role/<ou-role>",
+  "cft_role_name": "AWSCloudFormationStackSetExecutionRole",
   "api_url": "<clumio api url>",
   "stack_name": "<stack name to create>",
   "accounts": [
     {
-      "aws_account_id": "<aws account id 1>",
+      "aws_account_id_list": [
+        "<aws account id 1>"
+      ],
       "aws_region_list": [
         "us-east-1",
         "us-west-2"
@@ -18,7 +20,10 @@
       ]
     },
     {
-      "aws_account_id": "<aws account id 2>",
+      "aws_account_id_list": [
+        "<aws account id 2>",
+        "<aws account id 3>"
+      ],
       "aws_region_list": [
         "us-east-2"
       ],

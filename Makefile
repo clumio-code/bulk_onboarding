@@ -33,6 +33,7 @@ build:
 	pip install -r requirements.txt -t build/lambda/
 	cd build/lambda && zip -r ../clumio_bulk_onboarding.zip .
 	cp input/clumio_bulk_onboarding_deploy_cft.yaml input/clumio_bulk_onboarding_input.json build/
+	rm -rf build/lambda
 
 
 # Install the dependencies locally.
