@@ -3,7 +3,7 @@
   "cross_acocunt_cloudformation_role_name": "CrossAccountClumioLambdaCFTRole",
   "api_url": "<clumio api url>",
   "stack_name": "<stack name to create>",
-  "connections`": [
+  "connections": [
     {
       "aws_account_id_list": [
         "<aws account id 1>"
