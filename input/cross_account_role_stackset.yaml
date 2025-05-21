@@ -1,9 +1,14 @@
+---
 AWSTemplateFormatVersion: '2010-09-09'
 Description: IAM Role for Cross-Account Lambda to Manage CloudFormation of Clumio
+
 Parameters:
   ManagementAccountId:
     Type: String
     Description: The AWS Account ID of the management account(control tower account) that will contain lambda and will assume this role.
+  ClumioControlPlaneAccountID:
+    Type: String
+    Description: Clumio Control Plane Account ID
 
 Resources:
   CrossAccountLambdaRole:
@@ -15,7 +20,7 @@ Resources:
         Statement:
           - Effect: Allow
             Principal:
-              "AWS": !Sub arn:aws:iam::${ManagementAccountId}:role/clumio-bulk-onboard-lambda-role 
+              "AWS": !Sub arn:aws:iam::${ManagementAccountId}:role/clumio-bulk-onboard-lambda-role
             Action: sts:AssumeRole
       Policies:
         - PolicyName: AllowCFTActions
@@ -38,33 +43,132 @@ Resources:
                 Condition:
                   StringEquals:
                     aws:ResourceTag/Deployment: 'Clumio'
-              - Sid: ClumioSNSTopicPublish
-                Effect: Allow
-                Action:
-                  - sns:Publish
-                  - sns:GetTopicAttributes
-                  - sns:SetTopicAttributes
-                  - sns:CreateTopic
-                  - sns:TagResource
-                  - iam:GetRole
-                  - iam:CreateRole
-                  - iam:TagRole
-                  - iam:PutRolePolicy
-                  - events:DescribeRule
-                  - events:PutRule
-                  - events:PutTargets
-                  - cloudformation:GetTemplateSummary
-                  - cloudformation:TagResource
-                  - cloudformation:CreateStackSet
-                  - cloudformation:CreateStackInstances
-                  - cloudformation:DescribeStackSetOperation
-                  - iam:PassRole
-                Resource: "*"
-        - PolicyName: S3ReadOnly
+        - PolicyName: ClumioPolicy
           PolicyDocument:
             Version: '2012-10-17'
             Statement:
-              - Effect: Allow
+              - Sid: events
+                Effect: Allow
+                Action:
+                  - events:DeleteRule
+                  - events:DescribeRule
+                  - events:DisableRule
+                  - events:EnableRule
+                  - events:ListRules
+                  - events:ListTagsForResource
+                  - events:ListTargetsByRule
+                  - events:PutRule
+                  - events:PutTargets
+                  - events:RemoveTargets
+                Resource:
+                  - !Sub arn:aws:events:*:${AWS::AccountId}:rule/Clumio*
+              - Sid: iamall
+                Effect: Allow
+                Action:
+                  - iam:GetInstanceProfile
+                  - iam:AddRoleToInstanceProfile
+                  - iam:RemoveRoleFromInstanceProfile
+                  - iam:DeleteInstanceProfile
+                  - iam:CreateInstanceProfile
+                  - iam:GetRole
+                  - iam:GetPolicy
+                  - iam:DetachRolePolicy
+                Resource: '*'
+              - Sid: iam
+                Effect: Allow
+                Action:
+                  - iam:CreatePolicy
+                  - iam:DeletePolicy
+                  - iam:AttachRolePolicy
+                  - iam:CreateRole
+                  - iam:CreateServiceLinkedRole
+                  - iam:DeleteRole
+                  - iam:DeleteRolePolicy
+                  - iam:GetPolicyVersion
+                  - iam:GetRolePolicy
+                  - iam:ListAttachedRolePolicies
+                  - iam:ListInstanceProfiles
+                  - iam:ListInstanceProfilesForRole
+                  - iam:ListPolicies
+                  - iam:ListPolicyVersions
+                  - iam:ListRolePolicies
+                  - iam:PassRole
+                  - iam:PutRolePolicy
+                  - iam:TagRole
+                  - iam:TagPolicy
+                  - ssm:CreateDocument
+                  - ssm:DeleteDocument
+                  - ssm:ListDocuments
+                  - ssm:DescribeDocument
+                  - ssm:GetDocument
+                  - ssm:UpdateDocument
+                  - ssm:UpdateDocumentMetadata
+                Resource:
+                  - !Sub arn:aws:iam::${AWS::AccountId}:role/Clumio*
+                  - !Sub arn:aws:iam::${AWS::AccountId}:role/StackSet*
+                  - !Sub arn:aws:iam::${AWS::AccountId}:role/clumio/Clumio*
+                  - !Sub arn:aws:iam::${AWS::AccountId}:policy/clumio/Clumio*
+                  - !Sub arn:aws:iam::${AWS::AccountId}:policy/Clumio*
+                  - !Sub arn:aws:iam::${AWS::AccountId}:policy/clumio/*
+                  - !Sub arn:aws:iam::${AWS::AccountId}:policy/*
+                  - !Sub arn:aws:iam::${AWS::AccountId}:instance-profile/Clumio*
+              - Sid: ssm
+                Effect: Allow
+                Action:
+                  - ssm:CreateDocument
+                  - ssm:DeleteDocument
+                  - ssm:ListDocuments
+                  - ssm:DescribeDocument
+                  - ssm:GetDocument
+                  - ssm:UpdateDocument
+                  - ssm:UpdateDocumentMetadata
+                Resource:
+                  - !Sub arn:aws:ssm:*:${AWS::AccountId}:document/Clumio*
+              - Sid: sns
+                Effect: Allow
+                Action:
+                  - sns:CreateTopic
+                  - sns:DeleteTopic
+                  - sns:GetTopicAttributes
+                  - sns:ListTagsForResource
+                  - sns:ListTopics
+                  - sns:Publish
+                  - sns:SetTopicAttributes
+                  - sns:TagResource
+                  - sns:ListSubscriptionsByTopic
+                  - sns:AddPermission
+                  - sns:RemovePermission
+                Resource:
+                  - !Sub arn:aws:sns:*:${AWS::AccountId}:ClumioInventoryTopic*
+                  - !Sub arn:aws:sns:*:${ClumioControlPlaneAccountID}:CustomerCF*
+                  - !Sub arn:aws:sns:*:${ClumioControlPlaneAccountID}:*-Stack_Install_Notifier
+                  - !Sub arn:aws:sns:*:${AWS::AccountId}:SendStackNotificationsToClumio*
+              - Sid: cloudformation
+                Effect: Allow
+                Action:
+                  - cloudformation:DescribeStackEvents
+                  - cloudformation:GetTemplateSummary
+                Resource: '*'
+              - Sid: cloudformationStackSets
+                Effect: Allow
+                Action:
+                  - cloudformation:ListStackSetOperations
+                  - cloudformation:DescribeStackSet
+                  - cloudformation:DescribeStackSetOperation
+                  - cloudformation:CreateStackInstances
+                  - cloudformation:DeleteStackInstances
+                  - cloudformation:UpdateStackInstances
+                  - cloudformation:DescribeStackEvents
+                  - cloudformation:GetTemplateSummary
+                  - cloudformation:DeleteStackSet
+                  - cloudformation:CreateStackSet
+                  - cloudformation:UpdateStackSet
+                  - cloudformation:TagResource
+                Resource:
+                  - !Sub arn:aws:cloudformation:*:${AWS::AccountId}:stackset/ClumioStackSet-*
+                  - !Sub arn:aws:cloudformation:*:${AWS::AccountId}:stackset/ClumioEventRuleStackSet-*
+              - Sid: allowS3TemplateAccess
+                Effect: Allow
                 Action:
                   - s3:GetObject
-                Resource: "*"
+                Resource: '*'
