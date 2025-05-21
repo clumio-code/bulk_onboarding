@@ -154,7 +154,6 @@ class AWSOrgAccount:
     ):
         self._account_id = account_id
         self._aws_region = region
-        self._rnd_string = ''.join(random.choices(string.ascii_letters, k=5))
         self.cft_role = cft_role
 
         # Get the current session information
@@ -191,7 +190,7 @@ class AWSOrgAccount:
         cft_client = self.get_session_assume_role(child_account_id).client('cloudformation')
         try:
             deploy_rsp = cft_client.create_stack(
-                StackName=f'{stack_name}-{self._rnd_string}',
+                StackName=stack_name,
                 TemplateURL=template_url,
                 Parameters=[
                     {'ParameterKey': 'ClumioToken', 'ParameterValue': clumio_token},
@@ -207,7 +206,7 @@ class AWSOrgAccount:
                 TimeoutInMinutes=60,
                 Tags=[
                     {'Key': 'Deployment', 'Value': 'Clumio'},
-                ]
+                ],
             )
             print(f'deploy_status: {deploy_rsp}')
         except ClientError as err:
