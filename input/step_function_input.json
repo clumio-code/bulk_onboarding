@@ -1,9 +1,9 @@
 {
   "bear": "<clumio api bearer token>",
-  "cft_role_name": "AWSCloudFormationStackSetExecutionRole",
+  "cross_acocunt_cloudformation_role_name": "CrossAccountClumioLambdaCFTRole",
   "api_url": "<clumio api url>",
   "stack_name": "<stack name to create>",
-  "accounts": [
+  "connections`": [
     {
       "aws_account_id_list": [
         "<aws account id 1>"

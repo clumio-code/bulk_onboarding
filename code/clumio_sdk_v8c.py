@@ -150,7 +150,7 @@ class AWSOrgAccount:
         self,
         account_id: str,
         region: str,
-        cft_role: str = 'AWSCloudFormationStackSetExecutionRole',
+        cft_role: str = 'CrossAccountClumioLambdaCFTRole',
     ):
         self._account_id = account_id
         self._aws_region = region
@@ -159,12 +159,14 @@ class AWSOrgAccount:
 
         # Get the current session information
         self.sts_client = boto3.client('sts')
+        self._control_tower_account_id = self.sts_client.get_caller_identity().get('Account')
 
     def get_session_assume_role(self, account_id: str):
         # Assume the role of account to deploy.
         credentials = self.sts_client.assume_role(
             RoleArn=f'arn:aws:iam::{account_id}:role/{self.cft_role}',
             RoleSessionName='ClumioBulkOnboardSession',
+            ExternalId=self._control_tower_account_id,
         )['Credentials']
         access_key = credentials['AccessKeyId']
         secret_key = credentials['SecretAccessKey']
@@ -181,8 +183,8 @@ class AWSOrgAccount:
         self,
         child_account_id: str,
         template_url: str,
-        external_id: str,
         clumio_token: str,
+        external_id: str,
         stack_name: str,
     ):
         print(f'Deploying stack {stack_name} to {child_account_id}')
@@ -203,6 +205,9 @@ class AWSOrgAccount:
                 Capabilities=['CAPABILITY_NAMED_IAM'],
                 DisableRollback=True,
                 TimeoutInMinutes=60,
+                Tags=[
+                    {'Key': 'Deployment', 'Value': 'Clumio'},
+                ]
             )
             print(f'deploy_status: {deploy_rsp}')
         except ClientError as err:

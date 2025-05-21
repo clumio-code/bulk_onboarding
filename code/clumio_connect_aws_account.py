@@ -23,8 +23,8 @@ def lambda_handler(events, context):
     bear = events.get('bear')
     api_url = events.get('api_url')
     stack_name = events.get('stack_name', None)
-    connection_detail = events.get('account', None)
-    cft_role = events.get('cft_role_name', 'AWSCloudFormationStackSetExecutionRole')
+    connection_detail = events.get('connection_detail', None)
+    cft_role = events.get('cross_acocunt_cloudformation_role_name', 'CrossAccountClumioLambdaCFTRole')
     if connection_detail:
         account_id_list = connection_detail.get('aws_account_id_list', None)
         region_list = connection_detail.get('aws_region_list', None)
@@ -59,8 +59,8 @@ def lambda_handler(events, context):
         aws_account_mng.run_clumio_deploy_stack(
             account_id,
             deployment_template_url_clumio,
-            external_id,
             clumio_token,
+            external_id,
             stack_name,
         )
 
