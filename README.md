@@ -26,13 +26,9 @@ make build
 ```
 
 ## Steps
-### Role creation
-* Follow the reference https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/stacksets-prereqs-self-managed.html
-* Please make sure `AWSCloudFormationStackSetAdministrationRole` is created in a control tower account.
-* Please make sure `AWSCloudFormationStackSetExecutionRole` is created in each account to deploy stack.
-
-
-### Deployment in a control tower account
+### Deploy in a control tower account
 1. Upload `build/clumio_bulk_onboarding.zip` to s3 bucket.
-2. Upload cloudformation template `build/clumio_bulk_onboarding_deploy_cft.yaml` and create stack.
-3. Execute step function named `clumio-bulk-restore-state-machine` using example input `build/clumio_bulk_onboarding_input.json`.
+2. Create a *Stack* using cloudformation template `build/lambda_stack.yaml`.
+3. Create a *StackSet* using cloudformation template `build/cross_account_role_stackset.yaml`.
+4. Wait for all stacks to be deployed.
+5. Execute step function `clumio-bulk-restore-state-machine` using example input `build/step_function_input.json`.

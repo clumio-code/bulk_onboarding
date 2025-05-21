@@ -7,20 +7,63 @@ Parameters:
     MaxLength: 63
     Default: clumio-bulk-onboarding
     Description: The bucket name where the zip file is placed.
-  LambdaRoleArn:
+  CrossAccountLambdaRole:
     Type: String
-    MinLength: 20
-    MaxLength: 2048
-    Default: arn:aws:iam::<account-id>:role/bulk_onboard_lambda_role
-    Description: Role to run lambda function.
+    Default: CrossAccountClumioLambdaCFTRole
+    Description: The name of the cross-account role that the lambda function will assume.
 Resources:
+  LambdaRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: clumio-bulk-onboard-lambda-role
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      Policies:
+        - PolicyName: AllowCFTActions
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Sid: AllowCFTCreation
+                Effect: Allow
+                Action:
+                  - cloudformation:CreateStack
+                Resource: "*"
+                Condition:
+                  StringEquals:
+                    aws:RequestTag/Deployment: 'Clumio'
+              - Sid: AllowCFTDeletion
+                Effect: Allow
+                Action:
+                  - cloudformation:DeleteStack
+                Resource: "*"
+                Condition:
+                  StringEquals:
+                    aws:ResourceTag/Deployment: 'Clumio'
+        - PolicyName: AssumeRole-AWSCloudFormationStackExecutionRole
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Resource: !Sub arn:aws:iam::*:role/${CrossAccountLambdaRole}
+                Action:
+                  - sts:AssumeRole
+                Condition:
+                  StringEquals:
+                    sts:ExternalId: !Sub ${AWS::AccountId}
   LambdaFunction:
     Type: AWS::Lambda::Function
+    DependsOn: LambdaRole
     Properties:
       FunctionName: clumio-bulk-onboard-aws-accounts
       Runtime: python3.12
       Timeout: 60
-      Role: !Ref LambdaRoleArn
+      Role: !GetAtt LambdaRole.Arn
       Handler: clumio_connect_aws_account.lambda_handler
       Code:
         S3Bucket: !Ref Bucket
@@ -50,17 +93,6 @@ Resources:
                 Resource:
                   - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:clumio-bulk-onboard-aws-accounts:*
                   - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:clumio-bulk-onboard-aws-accounts
-        - PolicyName: XRayAccessPolicy
-          PolicyDocument:
-            Version: '2012-10-17'
-            Statement:
-              - Effect: Allow
-                Action:
-                  - xray:PutTraceSegments
-                  - xray:PutTelemetryRecords
-                  - xray:GetSamplingRules
-                  - xray:GetSamplingTargets
-                Resource: "*"
   BulkRestoreStepFunction:
     Type: "AWS::StepFunctions::StateMachine"
     Properties:
@@ -69,7 +101,7 @@ Resources:
       DefinitionString:
         Fn::Sub: |
             {
-              "Comment": "A description of my state machine",
+              "Comment": "This is a state machine to onboard AWS accounts to Clumio.",
               "StartAt": "Parse Input Data",
               "States": {
                 "Parse Input Data": {
@@ -84,13 +116,13 @@ Resources:
                         "Type": "Pass",
                         "Next": "clumio account onboard lambda",
                         "Parameters": {
-                          "startTime.$": "$.Execution.StartTime",
-                          "execName.$": "$.Execution.Name",
-                          "bear.$": "$.Execution.Input.bear",
-                          "api_url.$": "$.Execution.Input.api_url",
-                          "stack_name.$": "$.Execution.Input.stack_name",
+                          "startTime.$": "$$.Execution.StartTime",
+                          "execName.$": "$$.Execution.Name",
+                          "bear.$": "$$.Execution.Input.bear",
+                          "api_url.$": "$$.Execution.Input.api_url",
+                          "stack_name.$": "$$.Execution.Input.stack_name",
                           "connection_detail.$": "$",
-                          "cft_role_name.$": "$.Execution.Input.cft_role_name"
+                          "cross_acocunt_cloudformation_role_name.$": "$$.Execution.Input.cross_acocunt_cloudformation_role_name"
                         }
                       },
                       "clumio account onboard lambda": {
@@ -119,7 +151,7 @@ Resources:
                     }
                   },
                   "End": true,
-                  "ItemsPath": "$.accounts"
+                  "ItemsPath": "$.connections"
                 }
               }
             }

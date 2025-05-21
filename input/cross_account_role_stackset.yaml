@@ -1,0 +1,70 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: IAM Role for Cross-Account Lambda to Manage CloudFormation of Clumio
+Parameters:
+  ManagementAccountId:
+    Type: String
+    Description: The AWS Account ID of the management account(control tower account) that will contain lambda and will assume this role.
+
+Resources:
+  CrossAccountLambdaRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: CrossAccountClumioLambdaCFTRole
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              "AWS": !Sub arn:aws:iam::${ManagementAccountId}:role/clumio-bulk-onboard-lambda-role 
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: AllowCFTActions
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Sid: AllowCFTCreation
+                Effect: Allow
+                Action:
+                  - cloudformation:CreateStack
+                Resource: "*"
+                Condition:
+                  StringEquals:
+                    aws:RequestTag/Deployment: 'Clumio'
+              - Sid: AllowCFTDeletion
+                Effect: Allow
+                Action:
+                  - cloudformation:DeleteStack
+                Resource: "*"
+                Condition:
+                  StringEquals:
+                    aws:ResourceTag/Deployment: 'Clumio'
+              - Sid: ClumioSNSTopicPublish
+                Effect: Allow
+                Action:
+                  - sns:Publish
+                  - sns:GetTopicAttributes
+                  - sns:SetTopicAttributes
+                  - sns:CreateTopic
+                  - sns:TagResource
+                  - iam:GetRole
+                  - iam:CreateRole
+                  - iam:TagRole
+                  - iam:PutRolePolicy
+                  - events:DescribeRule
+                  - events:PutRule
+                  - events:PutTargets
+                  - cloudformation:GetTemplateSummary
+                  - cloudformation:TagResource
+                  - cloudformation:CreateStackSet
+                  - cloudformation:CreateStackInstances
+                  - cloudformation:DescribeStackSetOperation
+                  - iam:PassRole
+                Resource: "*"
+        - PolicyName: S3ReadOnly
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - s3:GetObject
+                Resource: "*"

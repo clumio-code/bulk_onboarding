@@ -27,12 +27,12 @@ clean:
 
 
 build:
-	rm -rf build/lambda build/clumio_bulk_onboarding.zip build/clumio_bulk_onboarding_deploy_cft.yaml build/clumio_bulk_onboarding_input.yaml
+	rm -rf build
 	mkdir -p build/lambda
 	cp code/*.py build/lambda/
 	pip install -r requirements.txt -t build/lambda/
 	cd build/lambda && zip -r ../clumio_bulk_onboarding.zip .
-	cp input/clumio_bulk_onboarding_deploy_cft.yaml input/clumio_bulk_onboarding_input.json build/
+	cp input/lambda_stack.yaml input/cross_account_role_stackset.yaml input/step_function_input.json build/
 	rm -rf build/lambda
 
 
