@@ -62,7 +62,7 @@ Resources:
     Properties:
       FunctionName: clumio-bulk-onboard-aws-accounts
       Runtime: python3.12
-      Timeout: 60
+      Timeout: 900
       Role: !GetAtt LambdaRole.Arn
       Handler: clumio_connect_aws_account.lambda_handler
       Code:
