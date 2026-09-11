@@ -38,7 +38,7 @@ CloudFormation templates, and the example Step Function input.
 2. Create a *Stack* using cloudformation template `build/lambda_stack.yaml`.
 3. Create a *StackSet* using cloudformation template `build/cross_account_role_stackset.yaml`.
 4. Wait for all stacks to be deployed.
-5. Execute step function `clumio-bulk-restore-state-machine` using example input `build/step_function_input.json`.
+5. Execute step function `clumio-bulk-onboard-state-machine` using example input `build/step_function_input.json`.
 
 ### Template parameters
 `lambda_stack.yaml` (deployed in the control tower account):
@@ -61,7 +61,7 @@ CloudFormation templates, and the example Step Function input.
 | `bear` | Clumio API bearer token. |
 | `api_url` | Clumio API URL. |
 | `stack_name` | Name of the Clumio stack created in each target account. |
-| `cross_acocunt_cloudformation_role_name` | Cross-account role name, must match `CrossAccountLambdaRole`. |
+| `cross_account_cloudformation_role_name` | Cross-account role name, must match `CrossAccountLambdaRole`. |
 | `connections` | List of `aws_account_id_list` / `aws_region_list` / `aws_service_list` groups. Each account in a group is connected to every listed region for the listed services. |
 
 The first region in `aws_region_list` is where the Clumio stack is deployed.
@@ -70,7 +70,6 @@ The first region in `aws_region_list` is where the Clumio stack is deployed.
 
 ```bash
 make install-dev   # development dependencies
-make test          # unittests with coverage
 make lint          # ruff check
 make format        # ruff format
 make mypy          # type check

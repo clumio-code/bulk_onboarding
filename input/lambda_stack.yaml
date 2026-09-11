@@ -93,10 +93,10 @@ Resources:
                 Resource:
                   - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:clumio-bulk-onboard-aws-accounts:*
                   - !Sub arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:clumio-bulk-onboard-aws-accounts
-  BulkRestoreStepFunction:
+  BulkOnboardStepFunction:
     Type: "AWS::StepFunctions::StateMachine"
     Properties:
-      StateMachineName: clumio-bulk-restore-state-machine
+      StateMachineName: clumio-bulk-onboard-state-machine
       RoleArn: !GetAtt StateMachineRole.Arn
       DefinitionString:
         Fn::Sub: |
@@ -122,7 +122,7 @@ Resources:
                           "api_url.$": "$$.Execution.Input.api_url",
                           "stack_name.$": "$$.Execution.Input.stack_name",
                           "connection_detail.$": "$",
-                          "cross_acocunt_cloudformation_role_name.$": "$$.Execution.Input.cross_acocunt_cloudformation_role_name"
+                          "cross_account_cloudformation_role_name.$": "$$.Execution.Input.cross_account_cloudformation_role_name"
                         }
                       },
                       "clumio account onboard lambda": {
