@@ -13,8 +13,9 @@
 # limitations under the License.
 
 
-import clumio_sdk_v8c
 import logging
+
+import clumio_sdk_v8c
 
 logger = logging.getLogger(__name__)
 
