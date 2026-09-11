@@ -54,6 +54,7 @@ CloudFormation templates, and the example Step Function input.
 | --- | --- |
 | `ManagementAccountId` | Control tower account ID that runs the Lambda. |
 | `ClumioControlPlaneAccountID` | Clumio control plane account ID. |
+| `CrossAccountLambdaRoleName` | Name of the created role. |
 
 ### Step function input
 | Field | Description |
@@ -61,10 +62,16 @@ CloudFormation templates, and the example Step Function input.
 | `bear` | Clumio API bearer token. |
 | `api_url` | Clumio API URL. |
 | `stack_name` | Name of the Clumio stack created in each target account. |
-| `cross_account_cloudformation_role_name` | Cross-account role name, must match `CrossAccountLambdaRole`. |
+| `cross_account_cloudformation_role_name` | Cross-account role name. |
 | `connections` | List of `aws_account_id_list` / `aws_region_list` / `aws_service_list` groups. Each account in a group is connected to every listed region for the listed services. |
 
-The first region in `aws_region_list` is where the Clumio stack is deployed.
+The first region in `aws_region_list` is both where the Clumio stack is deployed and the
+`master_region` of the connection group.
+
+> [!IMPORTANT]
+> `cross_account_cloudformation_role_name`, `CrossAccountLambdaRole`, and
+> `CrossAccountLambdaRoleName` name the same role and must be changed together.
+> A mismatch fails at `sts:AssumeRole` with no earlier warning.
 
 ## Development
 
