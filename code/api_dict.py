@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import TypedDict, Optional, Literal
+from typing import Literal, TypedDict
 
 
 class ApiDict(TypedDict, total=False):
@@ -23,8 +23,8 @@ class ApiDict(TypedDict, total=False):
     desc: str
     type: Literal['get', 'post']
     success: int
-    query_parms: Optional[dict]
-    body_parms: Optional[dict]
+    query_parms: dict | None
+    body_parms: dict | None
 
 
 API_DICT: dict[str, ApiDict] = {

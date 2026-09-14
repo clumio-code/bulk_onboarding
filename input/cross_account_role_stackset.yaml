@@ -9,12 +9,16 @@ Parameters:
   ClumioControlPlaneAccountID:
     Type: String
     Description: Clumio Control Plane Account ID
+  CrossAccountLambdaRoleName:
+    Type: String
+    Default: CrossAccountClumioLambdaCFTRole
+    Description: The name of this role, must match the CrossAccountLambdaRole parameter of the lambda stack.
 
 Resources:
   CrossAccountLambdaRole:
     Type: AWS::IAM::Role
     Properties:
-      RoleName: CrossAccountClumioLambdaCFTRole
+      RoleName: !Ref CrossAccountLambdaRoleName
       AssumeRolePolicyDocument:
         Version: '2012-10-17'
         Statement:

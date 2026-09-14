@@ -13,8 +13,9 @@
 # limitations under the License.
 
 
-import clumio_sdk_v8c
 import logging
+
+import clumio_sdk_v8c
 
 logger = logging.getLogger(__name__)
 
@@ -24,7 +25,7 @@ def lambda_handler(events, context):
     api_url = events.get('api_url')
     stack_name = events.get('stack_name', None)
     connection_detail = events.get('connection_detail', None)
-    cft_role = events.get('cross_acocunt_cloudformation_role_name', 'CrossAccountClumioLambdaCFTRole')
+    cft_role = events.get('cross_account_cloudformation_role_name', 'CrossAccountClumioLambdaCFTRole')
     if connection_detail:
         account_id_list = connection_detail.get('aws_account_id_list', None)
         region_list = connection_detail.get('aws_region_list', None)

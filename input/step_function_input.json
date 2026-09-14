@@ -1,6 +1,6 @@
 {
   "bear": "<clumio api bearer token>",
-  "cross_acocunt_cloudformation_role_name": "CrossAccountClumioLambdaCFTRole",
+  "cross_account_cloudformation_role_name": "CrossAccountClumioLambdaCFTRole",
   "api_url": "<clumio api url>",
   "stack_name": "<stack name to create>",
   "connections": [

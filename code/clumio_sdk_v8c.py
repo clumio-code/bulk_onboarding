@@ -13,14 +13,13 @@
 # limitations under the License.
 
 
-import requests
-import boto3
-import json
-import random
 import functools
-import string
-from botocore.exceptions import ClientError
+import json
+
 import api_dict
+import boto3
+import requests
+from botocore.exceptions import ClientError
 
 API_DICT = api_dict.API_DICT
 
@@ -81,7 +80,7 @@ class API:
         return API_DICT[self._id]['success']
 
     def exec_api(self) -> dict:
-        print('API Request: %s' % API_DICT[self._id]['desc'])
+        print(f'API Request: {API_DICT[self._id]["desc"]}')
         print(f'{self.type} API Request to {self.url} with payload {self._payload}')
 
         if self.type == 'get':
@@ -113,7 +112,7 @@ class ClumioConnectAccount(API):
         regions: list[str],
         services: list[str],
     ):
-        super(ClumioConnectAccount, self).__init__('008', url, token)
+        super().__init__('008', url, token)
         self.aws_account_to_connect: str | None = None
         self.master_aws_region: str | None = None
         self.master_aws_account_id: str | None = None
